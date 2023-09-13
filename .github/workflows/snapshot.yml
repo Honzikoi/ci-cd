@@ -1,0 +1,61 @@
+name: Générer un Snapshot du Site
+
+on:
+  push:
+    branches:
+      - cv
+
+jobs:
+  build-deploy:
+    runs-on: ubuntu-latest
+
+    steps:
+      # Étape 1 : Build l'application
+      - name: Code Checkout
+        uses: actions/checkout@v2
+
+      - name: Node.js Install
+        uses: actions/setup-node@v2
+        with:
+          node-version: '14'
+
+      - name: Dependencies Install
+        run: npm install
+
+      - name: App Build
+        run: npm run build
+
+      # Étape 2 : Lancer le serveur (ajustez selon vos besoins)
+      - name: Lancer le serveur
+        run: npm run start &
+
+      # Étape 3 : Générer le snapshot
+      - name: Installer Puppeteer
+        run: npm install puppeteer
+
+      - name: take Snapshot
+        run: node scriptSnapshot.js
+
+      # Étape 4 : Déplacer les fichiers dans le dossier static
+      - name: Déplacer les fichiers
+        run: mv snapshot.pdf static/
+
+      # Étape 5 : Push les fichiers sur le repo
+      - name: Configurer Git
+        run: |
+          git config user.name "Honzikoi"
+          git config user.email "honza.doan@gmail.com"
+
+      - name: Commit et Push
+        run: |
+          git add -A
+          git commit -m "Snapshot Take"
+          git push
+
+      # Étape 6 : Déployer sur Vercel
+      - name: Déployer sur Vercel
+        uses: vercel/action@master
+        with:
+          vercel-token: ${{ secrets.VERCEL_TOKEN }}
+          vercel-org-id: ${{ secrets.VERCEL_ORG_ID }}
+          vercel-project-id: ${{ secrets.VERCEL_PROJECT_ID }}

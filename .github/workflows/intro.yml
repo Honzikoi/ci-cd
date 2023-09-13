@@ -1,8 +1,5 @@
 name: Install and Build
 
-env: 
-  NAME: Johnny
-
 on: 
   push:
 
@@ -11,17 +8,18 @@ jobs:
     runs-on: ubuntu-latest
 
     steps: 
-      - uses: actions/checkout@v4
+      - name: Checkout
+        uses: actions/checkout@v3
 
-      - run: echo "hello ${{ env.NAME }}"
-
-      - name: Show node version
-        run: echo node -v
-
-      - name: Setup pnpm
-        uses: pnpm/action-setup@v2.4.0
+      - name: Install Node.js
+        uses: actions/setup-node@v3
         with:
-          version: 8
+          node-version: 16
+
+      - uses: pnpm/action-setup@v2
+        name: Install pnpm
+        with:
+          version: 7
           run_install: false
 
       - name: Get pnpm store directory
@@ -37,9 +35,5 @@ jobs:
           restore-keys: |
             ${{ runner.os }}-pnpm-store-
 
-
-      - name: Install Dependencies
+      - name: Install dependencies
         run: pnpm install
-
-      - name: Build the app
-        run: pnpm run build
